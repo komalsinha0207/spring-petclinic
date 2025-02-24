@@ -13,9 +13,12 @@ spec:
       labels:
         app: spring-petclinic
     spec:
+      imagePullSecrets:
+        - name: acr-secret-komal
       containers:
         - name: spring-petclinic
           image: vulcanacr.azurecr.io/demo-komal:latest
           ports:
             - containerPort: 8080
           imagePullPolicy: Always
+
