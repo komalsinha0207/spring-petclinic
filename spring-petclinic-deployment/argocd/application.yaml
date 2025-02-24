@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: spring-petclinic
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/komalsinha0207/spring-petclinic-deployment.git'
+    targetRevision: main
+    path: manifests  # Path where your Kubernetes YAML files are stored
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: vulcan-komal  # The namespace where your app will run
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true

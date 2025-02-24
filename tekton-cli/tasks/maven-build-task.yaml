@@ -1,0 +1,27 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: maven-build
+  namespace: vulcan-komal
+spec:
+  workspaces:
+    - name: source
+  steps:
+    - name: build
+      image: maven:3.8.6-eclipse-temurin-17
+      script: |
+        #!/bin/sh
+        set -e
+        echo "Listing workspace contents:"
+        ls -la /workspace/source  # ✅ Debugging output
+
+        # ✅ Fix: Use correct pom.xml path (there's no extra 'spring-petclinic' directory)
+        if [ ! -f "/workspace/source/pom.xml" ]; then
+          echo "Error: pom.xml not found in /workspace/source"
+          exit 1
+        fi
+
+        mvn -f /workspace/source/pom.xml clean install
+      workingDir: /workspace/source  # ✅ Ensures correct working directory
+        
+

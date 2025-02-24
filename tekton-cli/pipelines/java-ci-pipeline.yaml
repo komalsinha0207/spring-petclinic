@@ -1,0 +1,56 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: java-ci-pipeline
+  namespace: vulcan-komal
+spec:
+  workspaces:
+    - name: shared-workspace
+  params:
+    - name: git-url
+      type: string
+      description: Git repository URL
+    - name: git-revision
+      type: string
+      description: Git branch to build
+      default: "main"
+  tasks:
+    - name: fetch-repository
+      taskRef:
+        name: git-clone
+      params:
+        - name: url
+          value: $(params.git-url)
+        - name: revision
+          value: $(params.git-revision)
+        - name: deleteExisting
+          value: "true"
+      workspaces:
+        - name: output
+          workspace: shared-workspace
+
+    - name: build-app
+      taskRef:
+        name: maven-build
+      runAfter:
+        - fetch-repository
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+          
+    - name: containerize-and-push
+      taskRef:
+        name: docker-build-push
+      runAfter:
+        - build-app
+      params:
+        - name: acr-server
+          value: $(params.acr-server)
+        - name: image-name
+          value: $(params.image-name)
+        - name: image-tag
+          value: $(params.image-tag)
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+

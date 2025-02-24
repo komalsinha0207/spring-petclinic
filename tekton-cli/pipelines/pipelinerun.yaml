@@ -1,0 +1,26 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: java-ci-pipeline-run
+  namespace: vulcan-komal
+spec:
+  pipelineRef:
+    name: java-ci-pipeline
+  workspaces:
+    - name: shared-workspace
+      persistentVolumeClaim:
+        claimName: tekton-workspace-pvc
+  params:
+    - name: git-url
+      value: "https://github.com/komalsinha0207/spring-petclinic.git"
+    - name: git-revision
+      value: "main"
+    - name: image-url
+      value: "vulcanacr.azurecr.io/demo-komal:latest"
+    - name: acr-server
+      value: "vulcanacr.azurecr.io"
+    - name: image-name
+      value: "spring-petclinic-komal"
+    - name: image-tag
+      value: "latest"
+

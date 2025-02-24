@@ -1,0 +1,55 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: kaniko-build
+  namespace: vulcan-komal
+spec:
+  workspaces:
+    - name: source
+      mountPath: /workspace/source
+  params:
+    - name: image-url
+      type: string
+      description: "Full URL of the image to push (e.g., myacr.azurecr.io/spring-petclinic:latest)"
+  steps:
+    - name: create-dockerfile
+      image: alpine
+      script: |
+        #!/bin/sh
+        cat <<EOF > /workspace/source/Dockerfile
+        FROM maven:3.8.5-openjdk-17 AS builder
+        WORKDIR /app
+        COPY . .
+        RUN mvn clean package -DskipTests
+ 
+        FROM openjdk:17-jdk-slim
+        WORKDIR /app
+        COPY --from=builder /app/target/*.jar app.jar
+        EXPOSE 8080
+        ENTRYPOINT ["java", "-jar", "app.jar"]
+        EOF
+ 
+    - name: build-and-push
+      image: gcr.io/kaniko-project/executor:v1.11.0
+      imagePullPolicy: Always
+      securityContext:
+        runAsUser: 0
+      command: ["/kaniko/executor"]
+      args:
+        - "--context=/workspace/source"
+        - "--dockerfile=/workspace/source/Dockerfile"
+        - "--destination=$(params.image-url)"
+        - "--cache=true"
+      env:
+        - name: DOCKER_CONFIG
+          value: /kaniko/.docker
+      volumeMounts:
+        - name: kaniko-secret
+          mountPath: /kaniko/.docker
+  volumes:
+    - name: kaniko-secret
+      secret:
+        secretName: acr-secret-komal
+        items:
+          - key: .dockerconfigjson
+            path: config.json
