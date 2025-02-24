@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/komalsinha0207/spring-petclinic.git'
+    repoURL: 'https://github.com/komalsinha0207/spring-petclinic/spring-petclinic-deployment.git'
     targetRevision: main
     path: manifests  # Path where your Kubernetes YAML files are stored
   destination:
